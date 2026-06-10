@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotation System — Rovana Trade</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── SUPABASE CONFIG NOTICE ── */
+/* Replace SUPABASE_URL and SUPABASE_ANON_KEY below with your actual keys */
+
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: #e0dbd6;
+  font-size: 13px;
+  color: #1e2d3d;
+}
+
+/* ── TOOLBAR ─────────────────────────────── */
+.toolbar {
+  position: sticky; top: 0; z-index: 999;
+  background: #1a1a1a;
+  padding: 9px 20px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,.4);
+}
+.tb-title { color:#fff; font-weight:900; font-size:13px; margin-left:auto; }
+.tb-title span { color:#E8510A; }
+.tb-serial { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); border-radius:5px; padding:4px 10px; color:#fff; font-size:11px; }
+.tb-serial b { color:#E8510A; font-size:13px; }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:5px; border:none; cursor:pointer; font-family:'Cairo',sans-serif; font-size:11px; font-weight:700; white-space:nowrap; transition:opacity .15s; }
+.btn:hover { opacity:.85; }
+.btn-o { background:#E8510A; color:#fff; }
+.btn-g { background:#2e7d5e; color:#fff; }
+.btn-d { background:#333; color:#fff; }
+.btn-l { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.25); }
+
+/* ── PAGE ─────────────────────────────────── */
+.page {
+  width: 210mm;
+  background: #fff;
+  margin: 18px auto 40px;
+  box-shadow: 0 4px 32px rgba(0,0,0,.18);
+}
+
+/* ── HEADER ───────────────────────────────── */
+.hd-top { background:#1a1a1a; height:5px; }
+.hd-acc { background:#E8510A; height:4px; }
+.hd-body {
+  background:#1a1a1a; color:#fff;
+  padding:14px 22px;
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+}
+.hd-left { display:flex; align-items:center; gap:14px; flex:1; }
+.hd-logo { height:56px; width:auto; object-fit:contain; flex-shrink:0; }
+.hd-sep { width:2px; height:50px; background:#E8510A; flex-shrink:0; }
+.hd-info { display:flex; flex-direction:column; gap:3px; }
+.hd-tag { font-size:10px; color:rgba(255,255,255,.6); letter-spacing:.5px; }
+.hd-contacts { font-size:9.5px; color:rgba(255,255,255,.7); line-height:2; }
+.hd-badge {
+  background:#E8510A; border-radius:6px;
+  padding:9px 15px; text-align:center; min-width:120px; flex-shrink:0;
+}
+.hd-badge small { display:block; font-size:9px; letter-spacing:1.5px; color:rgba(255,255,255,.8); margin-bottom:2px; }
+.hd-badge .snum { font-size:15px; font-weight:900; }
+.hd-badge .sdate { display:block; font-size:9.5px; color:rgba(255,255,255,.8); margin-top:2px; }
+
+/* ── META BAR ─────────────────────────────── */
+.meta {
+  background:#f4f7fb; border-bottom:1px solid #d0dbe8;
+  padding:8px 22px; display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+}
+.mf { display:flex; align-items:center; gap:5px; }
+.mf label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#6b7f93; font-weight:700; white-space:nowrap; }
+.mf input {
+  border:1px solid #d0dbe8; border-radius:4px; padding:3px 7px;
+  font-family:'Cairo',sans-serif; font-size:11px; font-weight:700; color:#1a1a1a;
+  background:#fff; outline:none; direction:rtl;
+}
+.mf input:focus { border-color:#E8510A; }
+
+/* ── BODY ─────────────────────────────────── */
+.pg-body { padding:16px 22px; }
+
+/* ── PARTIES ──────────────────────────────── */
+.parties { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.pc { border:1px solid #d0dbe8; border-radius:6px; overflow:hidden; }
+.pc-head { background:#1a3a5c; color:#fff; padding:5px 11px; font-size:10px; font-weight:700; }
+.pc-body { padding:8px 11px; background:#f0f5fb; border-top: 2px solid #e8eef5; }
+.pc-body input {
+  display:block; width:100%; border:none; background:transparent;
+  font-family:'Cairo',sans-serif; font-size:13px; font-weight:800; color:#1a1a1a;
+  outline:none; margin-bottom:4px; direction:ltr; text-align:left; color:#1a3a5c;
+}
+
+/* ── AUTO-EXPAND TEXTAREA ─────────────────── */
+/* The key: NO height, just min-height, overflow visible on parents */
+textarea {
+  display:block;
+  width:100%;
+  border:none;
+  background:transparent;
+  font-family:'Cairo',sans-serif;
+  font-size:12px;
+  color:#1e2d3d;
+  line-height:1.8;
+  resize:none;
+  outline:none;
+  overflow:hidden;
+  min-height:28px;
+  padding:0;
+  direction:rtl;
+}
+
+.pc-body textarea { font-size:11px; color:#6b7f93; min-height:32px; text-align:left; direction:ltr; }
+.proj-box textarea { font-size:12px; min-height:48px; }
+.note-body textarea { font-size:11px; min-height:60px; line-height:1.9; text-align:left; direction:ltr; }
+
+/* ── PROJECT DESC ─────────────────────────── */
+.proj-box {
+  background:linear-gradient(135deg,#fdf3ee,#fde8dc);
+  border:1px solid #f5c4a8; border-right:4px solid #E8510A;
+  border-radius:6px; padding:10px 13px; margin-bottom:12px;
+}
+
+/* ── SECTION TITLE ────────────────────────── */
+.sec-title { display:flex; align-items:center; gap:8px; margin:12px 0 8px; }
+.sec-title hr { flex:1; border:none; border-top:1px solid #d0dbe8; }
+.sec-title span {
+  font-size:10px; font-weight:800; padding:2px 10px;
+  background:#E8510A; color:#fff; border-radius:20px; white-space:nowrap;
+}
+
+/* ── TABLE ────────────────────────────────── */
+table.items { width:100%; border-collapse:collapse; font-size:11px; }
+table.items thead tr { background:#1a3a5c; color:#fff; }
+table.items thead th { padding:7px 7px; font-size:10px; font-weight:700; text-align:center; white-space:nowrap; }
+table.items thead th:nth-child(2) { text-align:left; }
+table.items tbody tr { border-bottom:1px solid #e8eef5; }
+table.items tbody tr:nth-child(even) { background:#f7fafd; }
+table.items tbody tr.sec-row { background:#fff0e8; }
+table.items td { padding:4px 6px; text-align:center; vertical-align:middle; }
+table.items td:nth-child(2) { text-align:left; }
+
+table.items input {
+  width:100%; border:1px solid transparent; border-radius:3px;
+  padding:3px 5px; font-family:'Cairo',sans-serif; font-size:11px;
+  color:#1e2d3d; background:transparent; outline:none; text-align:inherit;
+  transition:border .1s;
+}
+table.items input:focus { border-color:#E8510A; background:#fff8f5; }
+table.items input[type=number] { text-align:center; direction:ltr; }
+
+.sec-row input {
+  font-weight:800; color:#E8510A; font-size:11px;
+  border:none !important; background:transparent !important; direction:rtl;
+}
+
+select.unit-sel {
+  width:100%; border:1px solid transparent; border-radius:3px;
+  padding:3px 2px; font-family:'Cairo',sans-serif; font-size:11px;
+  color:#1e2d3d; background:transparent; outline:none; cursor:pointer;
+}
+select.unit-sel:focus { border-color:#E8510A; background:#fff8f5; }
+
+.badge {
+  background:#E8510A; color:#fff; border-radius:50%;
+  width:19px; height:19px; display:inline-flex;
+  align-items:center; justify-content:center; font-size:9px; font-weight:700;
+}
+.total-cell { font-weight:700; color:#2e7d5e; direction:ltr; text-align:right; }
+.del-btn {
+  background:none; border:none; color:#ccc; cursor:pointer;
+  font-size:13px; padding:2px 4px; border-radius:3px; transition:all .15s;
+}
+.del-btn:hover { color:#c0392b; background:#fef0f0; }
+
+/* ── ADD BUTTONS ──────────────────────────── */
+.add-area { display:flex; gap:7px; margin:5px 0 2px; }
+.add-btn {
+  border:1px dashed #d0dbe8; background:none; border-radius:4px;
+  padding:3px 11px; font-family:'Cairo',sans-serif; font-size:11px;
+  color:#6b7f93; cursor:pointer; transition:all .15s;
+}
+.add-btn:hover { border-color:#E8510A; color:#E8510A; background:#fff5f0; }
+
+/* ── TOTALS ───────────────────────────────── */
+.totals-wrap { margin-top:14px; display:flex; flex-direction:column; gap:6px; }
+.totals-tbl { display:none; }
+.total-card {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 14px; border:1px solid #d0dbe8; border-radius:6px; background:#f9fbfd;
+}
+.total-card.grand-card {
+  background:#1a3a5c; border-color:#1a3a5c; padding:10px 16px;
+}
+.tl { color:#6b7f93; font-size:11px; font-weight:600; }
+.tv { font-weight:700; font-size:13px; direction:ltr; color:#1e2d3d; }
+.grand-card .tl { color:rgba(255,255,255,.8); font-size:12px; font-weight:700; }
+.grand-card .tv { color:#E8510A; font-size:17px; font-weight:900; }
+.vat-row { display:flex; align-items:center; gap:5px; }
+.vat-row input {
+  width:44px; border:1px solid #d0dbe8; border-radius:3px;
+  padding:2px 4px; font-family:'Cairo',sans-serif; font-size:11px;
+  text-align:center; direction:ltr; outline:none; background:#fff;
+}
+
+
+/* ── NOTES ────────────────────────────────── */
+.notes { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.note-full { border:1px solid #d0dbe8; border-radius:6px; overflow:hidden; }
+.note-full .note-body textarea { min-height:52px; }
+.note-box { border:1px solid #d0dbe8; border-radius:6px; overflow:hidden; }
+.note-head { background:#f4f7fb; border-bottom:1px solid #d0dbe8; padding:4px 10px; font-size:10px; font-weight:800; color:#1a1a1a; }
+.note-body { padding:8px 10px; }
+
+/* ── SIGNATURES ───────────────────────────── */
+.sigs { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+.sig-box { border:1px dashed #d0dbe8; border-radius:6px; padding:10px 14px; text-align:center; }
+.sig-lbl { font-size:9px; font-weight:700; color:#6b7f93; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+.sig-box input {
+  width:100%; border:none; border-top:1px solid #d0dbe8; background:transparent;
+  font-family:'Cairo',sans-serif; font-size:12px; font-weight:800; color:#1a1a1a;
+  text-align:center; outline:none; padding-top:5px; margin-top:18px; display:block; direction:rtl;
+}
+
+/* ── FOOTER ───────────────────────────────── */
+.pg-footer {
+  background:#1a1a1a; color:rgba(255,255,255,.65);
+  padding:7px 22px; font-size:9px;
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:18px; letter-spacing:.3px; direction:ltr;
+}
+.pg-footer strong { color:#fff; }
+.pg-footer .fa { color:#E8510A; font-weight:700; }
+
+/* ── HINT ─────────────────────────────────── */
+.hint {
+  position:fixed; bottom:18px; left:18px;
+  background:#1a1a1a; color:rgba(255,255,255,.75);
+  padding:7px 13px; border-radius:20px; font-size:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.2); pointer-events:none; z-index:99;
+}
+.hint b { color:#E8510A; }
+
+/* ── MERGE BUTTON ─────────────────────────── */
+.mrg-btn {
+  background: none; border: none; color: #aaa; cursor: pointer;
+  font-size: 13px; padding: 2px 4px; border-radius: 3px;
+  transition: all .15s; margin-right: 2px;
+}
+.mrg-btn:hover { color: #E8510A; background: #fff5f0; }
+tr.merged td:nth-child(2) { font-weight: 700; }
+
+/* ── PRINT ────────────────────────────────── */
+@media print {
+  .toolbar,.add-area,.del-btn,.add-btn,.hint { display:none !important; }
+  body { background:#fff; }
+  .page { margin:0; box-shadow:none; width:100%; }
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  textarea { overflow:visible !important; height:auto !important; }
+  @page { margin:0; size:A4; }
+}
+
+
+/* ── AUTH SCREEN ───────────────────────────── */
+#authScreen {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.auth-card {
+  background: #fff; border-radius: 12px;
+  width: 380px; overflow: hidden;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.4);
+}
+
+.auth-header {
+  background: #1a3a5c; padding: 28px 28px 20px;
+  text-align: center;
+}
+
+.auth-header img {
+  height: 52px; object-fit: contain; margin-bottom: 10px; display: block; margin: 0 auto 10px;
+  filter: brightness(0) invert(1);
+}
+
+.auth-header p {
+  color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 4px; font-style: italic;
+}
+
+.auth-acc { background: #E8510A; height: 3px; }
+
+.auth-body { padding: 24px 28px 28px; }
+
+.auth-tabs {
+  display: flex; gap: 0; margin-bottom: 20px;
+  border: 1px solid #d0dbe8; border-radius: 7px; overflow: hidden;
+}
+
+.auth-tab {
+  flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 700;
+  cursor: pointer; background: #f4f7fb; color: #6b7f93; border: none; font-family: Cairo, sans-serif;
+  transition: all .15s;
+}
+
+.auth-tab.active { background: #1a3a5c; color: #fff; }
+
+.auth-field { margin-bottom: 14px; }
+.auth-field label { display: block; font-size: 10px; font-weight: 700; color: #6b7f93; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.auth-field input {
+  width: 100%; border: 1px solid #d0dbe8; border-radius: 6px;
+  padding: 9px 12px; font-family: Cairo, sans-serif; font-size: 12px;
+  outline: none; transition: border .15s; color: #1a1a1a;
+}
+.auth-field input:focus { border-color: #E8510A; }
+
+.auth-btn {
+  width: 100%; background: #E8510A; color: #fff; border: none;
+  border-radius: 7px; padding: 11px; font-family: Cairo, sans-serif;
+  font-size: 13px; font-weight: 900; cursor: pointer; transition: opacity .15s;
+  margin-top: 4px;
+}
+.auth-btn:hover { opacity: .88; }
+.auth-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.auth-error {
+  background: #fef0f0; border: 1px solid #f5c4c4; border-radius: 6px;
+  padding: 8px 12px; color: #c0392b; font-size: 11px; margin-bottom: 12px;
+  display: none;
+}
+
+/* ── USER BADGE in toolbar ─── */
+.user-badge {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px; padding: 4px 12px; color: #fff; font-size: 11px;
+  display: flex; align-items: center; gap: 6px;
+}
+.user-badge span { color: #E8510A; font-weight: 700; }
+.user-badge button {
+  background: none; border: none; color: rgba(255,255,255,0.6);
+  cursor: pointer; font-size: 11px; padding: 0 2px; font-family: Cairo, sans-serif;
+}
+.user-badge button:hover { color: #fff; }
+
+/* ── CREATED BY badge on quote ─── */
+.qt-meta-info {
+  font-size: 9px; color: #6b7f93; text-align: right; padding: 4px 22px 0;
+  font-style: italic;
+}
+
+/* CONFIG MODAL */
+#configModal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 99998;
+  align-items: center; justify-content: center;
+}
+.config-card {
+  background: #fff; border-radius: 10px; width: 480px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3); overflow: hidden;
+}
+.config-head {
+  background: #1a3a5c; color: #fff; padding: 14px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.config-body { padding: 20px; }
+.config-field { margin-bottom: 14px; }
+.config-field label { display: block; font-size: 10px; font-weight: 700; color: #6b7f93; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.config-field input {
+  width: 100%; border: 1px solid #d0dbe8; border-radius: 6px;
+  padding: 8px 12px; font-family: Cairo, sans-serif; font-size: 11px; outline: none;
+  font-family: monospace; color: #1a1a1a;
+}
+.config-field input:focus { border-color: #E8510A; }
+.config-save {
+  background: #E8510A; color: #fff; border: none; border-radius: 6px;
+  padding: 9px 20px; font-family: Cairo, sans-serif; font-size: 12px;
+  font-weight: 700; cursor: pointer; width: 100%;
+}
+</style>
+<script>
+// Stub functions available immediately before main script loads
+window.openConfig = function() {
+  document.getElementById('configModal').style.display = 'flex';
+};
+window.switchTab = function(t) {
+  var lf = document.getElementById('loginForm');
+  var sf = document.getElementById('signupForm');
+  if(lf) lf.style.display = t==='login'?'block':'none';
+  if(sf) sf.style.display = t==='signup'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach(function(el,i){
+    el.classList.toggle('active',(t==='login'&&i===0)||(t==='signup'&&i===1));
+  });
+};
+window.doLogin = function() { alert('Still loading, please wait a moment...'); };
+window.doSignup = function() { alert('Still loading, please wait a moment...'); };
+</script>
+</head>
+<body>
+
+<!-- ══ AUTH SCREEN ═══════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="logo.jpg" alt="Rovana Trade">
+      <p>Quotation Management System</p>
+    </div>
+    <div class="auth-acc"></div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" onclick="switchTab('signup')">New Account</button>
+      </div>
+      <div id="authError" class="auth-error"></div>
+      <div id="loginForm">
+        <div class="auth-field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@company.com"></div>
+        <div class="auth-field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••"></div>
+        <button class="auth-btn" onclick="doLogin()">Sign In →</button>
+      </div>
+      <div id="signupForm" style="display:none">
+        <div class="auth-field"><label>Full Name</label><input id="signupName" type="text" placeholder="Mohammed Ahmed"></div>
+        <div class="auth-field"><label>Email</label><input id="signupEmail" type="email" placeholder="you@company.com"></div>
+        <div class="auth-field"><label>Password</label><input id="signupPass" type="password" placeholder="Min 6 characters"></div>
+        <button class="auth-btn" onclick="doSignup()">Create Account →</button>
+      </div>
+      <div style="border-top:1px solid #e8eef5; margin-top:16px; padding-top:12px; text-align:center;">
+        <button onclick="openConfig()" style="background:#f4f7fb; border:1px solid #d0dbe8; border-radius:6px; padding:8px 18px; font-family:Cairo,sans-serif; font-size:11px; font-weight:700; color:#1a3a5c; cursor:pointer; width:100%;">
+          ⚙ Configure Supabase Connection
+        </button>
+        <div id="connStatus" style="margin-top:8px; font-size:10px; color:#6b7f93;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP (hidden until login) ════════ -->
+<div id="mainApp" style="display:none;">
+
+<div class="toolbar">
+  <div class="tb-title">🗂 <span>Quotations</span> — Rovana Trade</div>
+  <div class="user-badge">
+    👤 <span id="userNameBadge">—</span>
+    <button onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="tb-serial">Quote No.: <input id="snDisplay" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.3);color:#E8510A;font-size:13px;font-weight:900;font-family:Cairo,sans-serif;width:110px;outline:none;text-align:center;" value="QT-2026-001" oninput="syncSerial(this.value)"></div>
+  <button class="btn btn-d" onclick="newQuote()">＋ New</button>
+  <button class="btn btn-o" onclick="addSection()">＋ Section</button>
+  <button class="btn btn-l" onclick="addItem()">＋ Item</button>
+  <button class="btn btn-g" onclick="saveQuote()">💾 Save</button>
+  <button class="btn btn-l" onclick="openQuotesList()">📂 My Quotes</button>
+  <button class="btn btn-g" onclick="window.print()">🖨 Print / PDF</button>
+</div>
+
+<div class="page">
+  <div class="hd-top"></div>
+  <div class="hd-acc"></div>
+  <div class="hd-body">
+    <div class="hd-left">
+      <img class="hd-logo" src="logo.jpg" alt="Rovana">
+      <div class="hd-sep"></div>
+      <div class="hd-info">
+        <div class="hd-tag">Metal Manufacturing & Trading · Cable Tray · Steel Structures</div>
+        <div style="font-size:10px; color:#E8510A; font-style:italic; font-weight:600; margin-top:3px;">&ldquo; Quality is a road, not a station &rdquo;</div>
+        <div class="hd-contacts" style="direction:rtl;">
+          🌐 www.rovanatrade.com &nbsp;|&nbsp; ✉ info@rovanatrade.com &nbsp;|&nbsp; ✉ sara.galal@rovanatrade.com<br>
+          📞 01061166987 &nbsp;|&nbsp; 📍 Slow Road - Qalyub - Qalyubia Gov. &nbsp;|&nbsp; Al-Moatamadia - Al-Mohandiseen - Giza
+        </div>
+      </div>
+    </div>
+    <div class="hd-badge">
+      <small>Quotation No.</small>
+      <input id="snPage" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.4);color:white;font-size:15px;font-weight:900;font-family:Cairo,sans-serif;text-align:center;width:130px;outline:none;padding:2px 0;" value="QT-2026-001" oninput="syncSerial(this.value)">
+      <span class="sdate" id="snDate"></span>
+    </div>
+  </div>
+
+  <div style="background:#1a3a5c; padding:10px 22px; border-bottom:3px solid #E8510A; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div style="font-size:12px; color:rgba(255,255,255,0.92); font-style:italic; letter-spacing:0.4px;">
+      We are pleased to present this quotation from <strong style="color:#E8510A;">Rovana Trade</strong> for Metal Manufacturing &amp; Trading.
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+      <div style="border:1.5px solid #E8510A; border-radius:4px; padding:3px 8px; text-align:center; flex-shrink:0;">
+        <div style="font-size:7.5px; color:rgba(255,255,255,0.7); letter-spacing:1px; text-transform:uppercase;">Certified</div>
+        <div style="font-size:11px; font-weight:900; color:#E8510A; letter-spacing:0.5px;">ISO 9001</div>
+      </div>
+      </div>
+  </div>
+  <div class="meta">
+    <div class="mf"><label>Reference No.</label><input id="metaRef" placeholder="SA-Plant-Mech-004" style="width:130px"></div> <div class="mf"><label>Material</label><input id="metaMat" placeholder="SS304 / Carbon Steel" style="width:130px"></div>
+    <div class="mf"><label>Client Phone</label><input id="metaPhone" placeholder="01xxxxxxxxx" style="width:110px"></div>
+    <div class="mf"><label>Client Email</label><input id="metaEmail" placeholder="email@company.com" style="width:150px"></div>
+    <div class="mf"><label>Validity</label><input id="metaValidity" value="30 Days" style="width:75px" oninput="refreshFooter()"></div>
+    <div class="mf"><label>Date & Time</label><input id="metaDatetime" readonly style="width:155px;background:#f0f4f8;color:#1a1a1a;cursor:default;font-size:10.5px;"></div>
+  </div>
+
+  <div id="qtMetaInfo" class="qt-meta-info"></div>
+  <div class="pg-body">
+
+    <div class="parties">
+      <div class="pc">
+        <div class="pc-head">⬤ From</div>
+        <div class="pc-body">
+          <input type="text" value="Rovana Trade">
+          <textarea placeholder="Specialty & Address">Metal Fabrication, Supply & Installation
+Arab Republic of Egypt</textarea>
+        </div>
+      </div>
+      <div class="pc">
+        <div class="pc-head">⬤ To</div>
+        <div class="pc-body">
+          <input id="toName" type="text" placeholder="Client Name / Company">
+          <textarea id="toDetail" placeholder="Project — Site — Equipment Code"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="proj-box">
+      <textarea id="projDesc" placeholder="Project description and scope of quotation..."></textarea>
+    </div>
+
+    <div class="sec-title"><hr><span>Scope of Work & Pricing</span><hr></div>
+
+    <table class="items">
+      <thead>
+        <tr>
+          <th style="width:22px">#</th>
+          <th style="width:42%">Item / Description</th>
+          <th style="width:7%">Qty</th>
+          <th style="width:9%">Unit</th>
+          <th style="width:13%">Unit Price (EGP)</th>
+          <th style="width:13%">Total (EGP)</th>
+          <th style="width:20px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="add-area">
+      <button class="add-btn" onclick="addSection()">＋ Add Section</button>
+      <button class="add-btn" onclick="addItem()">＋ Add Item</button>
+    </div>
+
+    <div class="totals-wrap">
+      <table class="totals-tbl">
+        <tr><td class="tl">Subtotal</td><td class="tv" id="tSub">0 EGP</td></tr>
+        <tr>
+          <td class="tl">
+            <div class="vat-row">VAT <input id="vatRate" type="number" value="14" min="0" max="100" oninput="recalc()"> %</div>
+          </td>
+          <td class="tv" id="tVat">0 EGP</td>
+        </tr>
+        <tr class="grand"><td class="tl">Grand Total (incl. VAT)</td><td class="tv" id="tGrand">0 EGP</td></tr>
+      </table>
+    </div>
+</div>
+
+    <div class="sec-title" style="margin-top:14px"><hr><span>Terms & Conditions</span><hr></div>
+    <div class="notes">
+      <div class="note-box">
+        <div class="note-head">📋 Payment Terms</div>
+        <div class="note-body"><textarea>40% advance upon order confirmation
+40% upon delivery to site
+20% after completion & acceptance</textarea></div>
+      </div>
+      <div class="note-box">
+        <div class="note-head">📦 Delivery Terms</div>
+        <div class="note-body"><textarea>Delivery: Ex-Works (factory)
+Lead time: To be confirmed upon order
+Excludes transportation & installation</textarea></div>
+      </div>
+    </div>
+    <div class="note-box note-full" style="margin-top:10px;">
+      <div class="note-head">📝 Notes</div>
+      <div class="note-body"><textarea placeholder="Write any additional notes here..."></textarea></div>
+    </div>
+
+        </div>
+
+    <div class="sec-title" style="margin-top:14px"><hr><span>Signatures & Approval</span><hr></div>
+    <div class="sigs">
+      <div class="sig-box">
+        <div class="sig-lbl">Offered By</div>
+        <input type="text" value="Rovana Trade">
+      </div>
+      <div class="sig-box">
+        <div class="sig-lbl">Accepted By — Client</div>
+        <input type="text" placeholder="Client name & stamp">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pg-footer">
+    <strong>Rovana Trade</strong>
+    <span class="fa">www.rovanatrade.com</span>
+    <span>01061166987 | قليوب - القليوبية | المهندسين - الجيزة</span>
+    <span id="footerRight">QT-2026-001 · Validity: 30 Days</span>
+  </div>
+</div>
+
+<div class="hint">✏ Click any field to edit &nbsp;·&nbsp; <b>Serial is auto-generated</b></div>
+
+
+
+<!-- QUOTES LIST MODAL -->
+
+<!-- QUOTES LIST MODAL -->
+<div id="quotesModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:10px; width:680px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,0.3); overflow:hidden;">
+    <div style="background:#1a3a5c; color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+      <div style="font-size:14px; font-weight:900;">📂 Saved Quotations</div>
+      <button onclick="closeModal()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:12px 20px; border-bottom:1px solid #e0e8f0; background:#f4f7fb; flex-shrink:0; display:flex; gap:10px;">
+      <input id="searchInput" type="text" placeholder="Search by serial, client name or reference..."
+        style="flex:1;border:1px solid #d0dbe8;border-radius:6px;padding:7px 12px;font-family:Cairo,sans-serif;font-size:12px;outline:none;"
+        oninput="renderList()">
+      <button onclick="document.getElementById('searchInput').value='';renderList();"
+        style="background:#e8eef5;border:none;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:11px;color:#4a5f73;">Clear</button>
+    </div>
+    <div id="quotesList" style="overflow-y:auto;flex:1;padding:10px 20px;"></div>
+    <div style="padding:10px 20px;border-top:1px solid #e0e8f0;background:#f9fbfd;font-size:10px;color:#6b7f93;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
+      <span id="quotesCount">0 quotations</span>
+      <button onclick="if(confirm('Delete ALL?'))clearAllQuotes();"
+        style="background:#fef0f0;border:1px solid #f5c4c4;color:#c0392b;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:Cairo,sans-serif;">🗑 Clear All</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /mainApp -->
+
+<script>
+// ══════════════════════════════════════
+// SUPABASE INIT
+// ══════════════════════════════════════
+let supabaseClient = null;
+let currentUser = null;
+let currentUserName = '';
+
+function getConfig() {
+  return {
+    url: localStorage.getItem('sb_url') || '',
+    key: localStorage.getItem('sb_key') || ''
+  };
+}
+
+function initSupabase() {
+  const cfg = getConfig();
+  if (!cfg.url || !cfg.key) return false;
+  try {
+    supabaseClient = supabase.createClient(cfg.url, cfg.key);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfgUrl').value.trim();
+  const key = document.getElementById('cfgKey').value.trim();
+  if (!url || !key) return alert('Please enter both URL and Key.');
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+  document.getElementById('configModal').style.display = 'none';
+  if (initSupabase()) {
+    alert('Connected! Please sign in.');
+  } else {
+    alert('Could not connect. Check your credentials.');
+  }
+}
+
+function openConfig() {
+  const cfg = getConfig();
+  document.getElementById('cfgUrl').value = cfg.url;
+  document.getElementById('cfgKey').value = cfg.key;
+  document.getElementById('configModal').style.display = 'flex';
+}
+
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = tab==='signup' ? 'block' : 'none';
+  document.querySelectorAll('.auth-tab').forEach(function(t,i) {
+    t.classList.toggle('active', (tab==='login' && i===0) || (tab==='signup' && i===1));
+  });
+  document.getElementById('authError').style.display = 'none';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function doLogin() {
+  if (!supabaseClient) {
+    if (!initSupabase()) return openConfig();
+  }
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) return showAuthError('Please enter email and password.');
+  const btn = document.querySelector('#loginForm .auth-btn');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = 'Sign In →';
+  if (error) return showAuthError(error.message);
+  await onLogin(data.user);
+}
+
+async function doSignup() {
+  if (!supabaseClient) {
+    if (!initSupabase()) return openConfig();
+  }
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  if (!name || !email || !pass) return showAuthError('Please fill all fields.');
+  if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
+  const btn = document.querySelector('#signupForm .auth-btn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+  const { data, error } = await supabaseClient.auth.signUp({
+    email, password: pass,
+    options: { data: { full_name: name } }
+  });
+  btn.disabled = false; btn.textContent = 'Create Account →';
+  if (error) return showAuthError(error.message);
+  if (data.user && !data.session) return showAuthError('Check your email to confirm your account.');
+  if (data.user) await onLogin(data.user);
+}
+
+async function onLogin(user) {
+  currentUser = user;
+  // Get profile name
+  const { data: profile } = await supabaseClient
+    .from('profiles').select('full_name').eq('id', user.id).single();
+  currentUserName = profile ? profile.full_name : user.email.split('@')[0];
+  // Show app
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  // Update user badge
+  document.getElementById('userNameBadge').textContent = currentUserName;
+}
+
+async function doLogout() {
+  await supabaseClient.auth.signOut();
+  currentUser = null; currentUserName = '';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  switchTab('login');
+}
+
+// Check existing session on load
+async function checkSession() {
+  const cfg = getConfig();
+  const statusEl = document.getElementById('connStatus');
+  if (!cfg.url || !cfg.key) {
+    if (statusEl) statusEl.innerHTML = '⚠ Not configured yet — click the button above';
+    return;
+  }
+  if (statusEl) statusEl.innerHTML = '🟢 Connected to: ' + cfg.url.replace('https://','').split('.')[0] + '.supabase.co';
+  if (!initSupabase()) {
+    // No config yet — show config button on auth screen
+    const authBody = document.querySelector('.auth-body');
+    const cfgBtn = document.createElement('div');
+    cfgBtn.style.cssText = 'text-align:center;margin-top:14px;';
+    cfgBtn.innerHTML = '<button onclick="openConfig()" style="background:none;border:none;color:#6b7f93;font-size:11px;cursor:pointer;font-family:Cairo,sans-serif;text-decoration:underline;">⚙ Configure Supabase</button>';
+    authBody.appendChild(cfgBtn);
+    return;
+  }
+  const { data } = await supabaseClient.auth.getSession();
+  if (data.session) {
+    await onLogin(data.session.user);
+  }
+}
+
+// ══════════════════════════════════════
+// MAIN APP JS
+// ══════════════════════════════════════
+
+// ══════════════════════════════════════
+// TEXTAREA AUTO-EXPAND — Simple & Reliable
+// ══════════════════════════════════════
+function fit(ta) {
+  ta.style.height = '0';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+function fitAll() {
+  document.querySelectorAll('textarea').forEach(fit);
+}
+
+// Attach to every textarea now and in the future
+document.addEventListener('input', function(e) {
+  if (e.target.tagName === 'TEXTAREA') fit(e.target);
+});
+
+// ══════════════════════════════════════
+// SERIAL NUMBER
+// ══════════════════════════════════════
+function getNewSerial() {
+  const yr = new Date().getFullYear();
+  const n = parseInt(localStorage.getItem('qt_n') || '0') + 1;
+  localStorage.setItem('qt_n', n);
+  return 'QT-' + yr + '-' + String(n).padStart(3, '0');
+}
+
+let serial = localStorage.getItem('qt_cur') || (() => {
+  const s = getNewSerial();
+  localStorage.setItem('qt_cur', s);
+  return s;
+})();
+
+function setSerial(s) {
+  document.getElementById('snDisplay').value = s;
+  document.getElementById('snPage').value = s;
+  refreshFooter();
+}
+
+function syncSerial(val) {
+  serial = val;
+  localStorage.setItem('qt_cur', val);
+  document.getElementById('snDisplay').value = val;
+  document.getElementById('snPage').value = val;
+  refreshFooter();
+}
+
+function refreshFooter() {
+  const v = document.getElementById('metaValidity').value || '30 Days';
+  const s = document.getElementById('snPage') ? document.getElementById('snPage').value : serial;
+  document.getElementById('footerRight').textContent = s + ' · Validity: ' + v;
+}
+
+// Date on badge
+const d = new Date();
+document.getElementById('snDate').textContent = 'Date: ' +
+  String(d.getDate()).padStart(2,'0') + ' / ' +
+  String(d.getMonth()+1).padStart(2,'0') + ' / ' + d.getFullYear();
+
+// Live clock in meta bar
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function updateClock() {
+  const now = new Date();
+  const day = DAYS[now.getDay()];
+  const date = String(now.getDate()).padStart(2,'0') + '/' +
+               String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear();
+  const hrs  = String(now.getHours()).padStart(2,'0');
+  const mins = String(now.getMinutes()).padStart(2,'0');
+  const secs = String(now.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('metaDatetime');
+  if (el) el.value = day + '  ' + date + '  ' + hrs + ':' + mins + ':' + secs;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+setSerial(serial);
+
+// ══════════════════════════════════════
+// ROWS
+// ══════════════════════════════════════
+let rowCount = 0;
+
+function addSection(title) {
+  title = title || '';
+  const tr = document.createElement('tr');
+  tr.className = 'sec-row';
+  tr.dataset.t = 's';
+  tr.innerHTML =
+    '<td colspan="6"><input type="text" value="' + title + '" placeholder="Section name / Phase..."></td>' +
+    '<td style="white-space:nowrap"><button class="del-btn" onclick="delRow(this)" title="Delete">✕</button><button class="mrg-btn" onclick="toggleMerge(this)" title="Merge / Unmerge">⇔</button></td>';
+  document.getElementById('tbody').appendChild(tr);
+}
+
+function addItem() {
+  rowCount++;
+  const n = rowCount;
+  const tr = document.createElement('tr');
+  tr.dataset.t = 'i';
+  tr.innerHTML =
+    '<td><span class="badge">' + n + '</span></td>' +
+    '<td><input type="text" placeholder="Item description / Material..."></td>' +
+    '<td><input type="number" placeholder="0" min="0" oninput="calcRow(this)"></td>' +
+    '<td><select class="unit-sel">' +
+      '<option value="">—</option>' +
+      '<option>MTR</option>' +
+      '<option>EA</option>' +
+      '<option>K.G</option>' +
+      '<option>SET</option>' +
+      '<option>LOT</option>' +
+      '<option>TON</option>' +
+      '<option>M²</option>' +
+    '</select></td>' +
+    '<td><input type="number" placeholder="0" min="0" oninput="calcRow(this)" style="direction:ltr"></td>' +
+    '<td class="total-cell" id="rt' + n + '">0</td>' +
+    '<td style="white-space:nowrap"><button class="del-btn" onclick="delRow(this)" title="Delete">✕</button><button class="mrg-btn" onclick="toggleMerge(this)" title="Merge / Unmerge">⇔</button></td>';
+  document.getElementById('tbody').appendChild(tr);
+  recalc();
+}
+
+function delRow(btn) {
+  btn.closest('tr').remove();
+  let n = 0;
+  document.querySelectorAll('#tbody tr[data-t="i"]').forEach(function(tr) {
+    n++;
+    const b = tr.querySelector('.badge');
+    if (b) b.textContent = n;
+  });
+  rowCount = n;
+  recalc();
+}
+
+function calcRow(inp) {
+  const tr = inp.closest('tr');
+  const nums = tr.querySelectorAll('input[type=number]');
+  const total = (parseFloat(nums[0].value) || 0) * (parseFloat(nums[1].value) || 0);
+  const badge = tr.querySelector('.badge');
+  const id = badge ? badge.textContent : '';
+  const cell = document.getElementById('rt' + id);
+  if (cell) cell.textContent = fmt(total);
+  recalc();
+}
+
+// ══════════════════════════════════════
+// MERGE / UNMERGE ROW CELLS
+// ══════════════════════════════════════
+function toggleMerge(btn) {
+  const tr = btn.closest('tr');
+  if (tr.classList.contains('merged')) {
+    // UN-MERGE: restore original cells
+    const saved = tr.dataset.savedHtml;
+    if (saved) {
+      // Remove merged td
+      while (tr.cells.length > 0) tr.deleteCell(0);
+      // Restore from saved
+      const tmp = document.createElement('table');
+      tmp.innerHTML = '<tr>' + saved + '</tr>';
+      const cells = tmp.rows[0].cells;
+      while (cells.length > 0) tr.appendChild(cells[0]);
+      tr.classList.remove('merged');
+      delete tr.dataset.savedHtml;
+    }
+  } else {
+    // MERGE: save original, replace cols 2-5 with one wide textarea
+    tr.dataset.savedHtml = tr.innerHTML;
+    tr.classList.add('merged');
+
+    // Collect existing text from desc + qty + unit + price fields
+    const descInput = tr.cells[1] ? tr.cells[1].querySelector('input') : null;
+    const existingText = descInput ? descInput.value : '';
+
+    // Keep cell[0] (badge) and last cell (buttons)
+    const badge = tr.cells[0].innerHTML;
+    const btns  = tr.cells[tr.cells.length - 1].innerHTML;
+
+    // Clear all cells
+    while (tr.cells.length > 0) tr.deleteCell(0);
+
+    // Badge cell
+    const c0 = tr.insertCell();
+    c0.innerHTML = badge;
+
+    // Merged text cell (colspan=4)
+    const cm = tr.insertCell();
+    cm.colSpan = 4;
+    cm.style.padding = '4px 6px';
+    const ta = document.createElement('textarea');
+    ta.placeholder = 'Write detailed description or note here...';
+    ta.value = existingText;
+    ta.style.cssText = 'width:100%;border:none;background:transparent;font-family:Cairo,sans-serif;font-size:11px;color:#1e2d3d;line-height:1.8;resize:none;outline:none;overflow:hidden;min-height:28px;padding:2px 0;display:block;';
+    ta.addEventListener('input', function() {
+      this.style.height = '0';
+      this.style.height = this.scrollHeight + 'px';
+    });
+    cm.appendChild(ta);
+    setTimeout(function() {
+      ta.style.height = '0';
+      ta.style.height = ta.scrollHeight + 'px';
+      ta.focus();
+    }, 10);
+
+    // Total cell (empty, no calc)
+    const ct = tr.insertCell();
+    ct.className = 'total-cell';
+    ct.textContent = '';
+
+    // Buttons cell
+    const cb = tr.insertCell();
+    cb.style.whiteSpace = 'nowrap';
+    cb.innerHTML = btns;
+  }
+}
+
+function recalc() {
+  let sub = 0;
+  document.querySelectorAll('#tbody tr[data-t="i"]').forEach(function(tr) {
+    const nums = tr.querySelectorAll('input[type=number]');
+    const t = (parseFloat(nums[0] && nums[0].value) || 0) * (parseFloat(nums[1] && nums[1].value) || 0);
+    sub += t;
+    const badge = tr.querySelector('.badge');
+    if (badge) {
+      const cell = document.getElementById('rt' + badge.textContent);
+      if (cell) cell.textContent = fmt(t);
+    }
+  });
+  const vat = (parseFloat(document.getElementById('vatRate').value) || 0) / 100;
+  const vatAmt = sub * vat;
+  document.getElementById('tSub').textContent = fmt(sub) + ' EGP';
+  document.getElementById('tVat').textContent = fmt(vatAmt) + ' EGP';
+  document.getElementById('tGrand').textContent = fmt(sub + vatAmt) + ' EGP';
+}
+
+function fmt(n) {
+  return n ? n.toLocaleString('en-US', {maximumFractionDigits: 0}) : '0';
+}
+
+// ══════════════════════════════════════
+// NEW QUOTE
+// ══════════════════════════════════════
+function newQuote() {
+  if (!confirm('Start a new quotation? A new serial number will be generated.')) return;
+  serial = getNewSerial();
+  localStorage.setItem('qt_cur', serial);
+  setSerial(serial);
+  document.getElementById('tbody').innerHTML = '';
+  rowCount = 0;
+  ['toName','toDetail','projDesc','metaRef','metaTag','metaMat','metaPhone','metaEmail'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('metaValidity').value = '30 Days';
+  refreshFooter();
+  recalc();
+  addSection('A — Supply');
+  addItem(); addItem();
+  fitAll();
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+addSection('A — Supply');
+addItem(); addItem();
+addSection('B — Fabrication & Assembly');
+addItem();
+recalc();
+
+// Fit after fonts load
+if (document.fonts) {
+  document.fonts.ready.then(fitAll);
+} else {
+  window.onload = fitAll;
+}
+setTimeout(fitAll, 500);
+
+// ══════════════════════════════════════
+// SAVE / LOAD SYSTEM
+// ══════════════════════════════════════
+
+function collectQuoteData() {
+  const rows = [];
+  document.querySelectorAll('#tbody tr').forEach(function(tr) {
+    if (tr.dataset.t === 's') {
+      const inp = tr.querySelector('input');
+      rows.push({ type: 'section', title: inp ? inp.value : '' });
+    } else if (tr.dataset.t === 'i') {
+      const nums = tr.querySelectorAll('input[type=number]');
+      const desc = tr.querySelector('td:nth-child(2) input');
+      const sel = tr.querySelector('select');
+      const merged = tr.classList.contains('merged');
+      const mergedTa = merged ? tr.querySelector('textarea') : null;
+      rows.push({
+        type: 'item',
+        desc: desc ? desc.value : '',
+        qty: nums[0] ? nums[0].value : '',
+        unit: sel ? sel.value : '',
+        price: nums[1] ? nums[1].value : '',
+        merged: merged,
+        mergedText: mergedTa ? mergedTa.value : ''
+      });
+    }
+  });
+  const noteTas = document.querySelectorAll('.note-body textarea');
+  // Calc totals
+  let sub = 0;
+  document.querySelectorAll('#tbody tr[data-t="i"]').forEach(function(tr) {
+    const nums = tr.querySelectorAll('input[type=number]');
+    sub += (parseFloat(nums[0]&&nums[0].value)||0) * (parseFloat(nums[1]&&nums[1].value)||0);
+  });
+  const vat = (parseFloat(document.getElementById('vatRate').value)||0)/100;
+  return {
+    serial: document.getElementById('snPage').value,
+    created_by: currentUser ? currentUser.id : null,
+    created_by_name: currentUserName,
+    last_edited_by: currentUser ? currentUser.id : null,
+    last_edited_by_name: currentUserName,
+    client_name: document.getElementById('toName').value,
+    client_phone: document.getElementById('metaPhone').value,
+    client_email: document.getElementById('metaEmail').value,
+    meta_ref: document.getElementById('metaRef').value,
+    meta_mat: document.getElementById('metaMat').value,
+    meta_validity: document.getElementById('metaValidity').value,
+    to_detail: document.getElementById('toDetail').value,
+    proj_desc: document.getElementById('projDesc').value,
+    vat_rate: parseFloat(document.getElementById('vatRate').value)||14,
+    payment_terms: noteTas[0] ? noteTas[0].value : '',
+    delivery_terms: noteTas[1] ? noteTas[1].value : '',
+    notes: noteTas[2] ? noteTas[2].value : '',
+    subtotal: sub,
+    vat_amount: sub * vat,
+    grand_total: sub + sub * vat,
+    rows_data: rows
+  };
+}
+
+async function saveQuote() {
+  if (!supabaseClient || !currentUser) return alert('Not connected.');
+  const data = collectQuoteData();
+  const btn = document.querySelector('[onclick="saveQuote()"]');
+  if (btn) { btn.innerHTML = '⏳ Saving...'; btn.disabled = true; }
+
+  // Check if serial exists (update) or new (insert)
+  const { data: existing } = await supabaseClient
+    .from('quotations').select('id, created_by').eq('serial', data.serial).single();
+
+  let error;
+  if (existing) {
+    // Update — keep original created_by, update last_edited
+    const updateData = Object.assign({}, data);
+    updateData.created_by = existing.created_by;
+    delete updateData.created_by_name; // keep original
+    updateData.last_edited_by = currentUser.id;
+    updateData.last_edited_by_name = currentUserName;
+    ({ error } = await supabaseClient.from('quotations').update(updateData).eq('serial', data.serial));
+  } else {
+    ({ error } = await supabaseClient.from('quotations').insert([data]));
+  }
+
+  if (btn) { btn.disabled = false; }
+  if (error) {
+    if (btn) btn.innerHTML = '❌ Error';
+    alert('Save error: ' + error.message);
+    setTimeout(function(){ if(btn) btn.innerHTML = '💾 Save'; }, 2000);
+    return;
+  }
+  if (btn) { btn.innerHTML = '✅ Saved!'; setTimeout(function(){ btn.innerHTML = '💾 Save'; }, 1800); }
+}
+
+async function loadQuote(ser) {
+  const { data: q, error } = await supabaseClient
+    .from('quotations').select('*').eq('serial', ser).single();
+  if (error || !q) return alert('Could not load quote.');
+
+  if (q.serial) { document.getElementById('snPage').value = q.serial; document.getElementById('snDisplay').value = q.serial; serial = q.serial; }
+  const fieldMap = { metaRef:'meta_ref', metaMat:'meta_mat', metaPhone:'client_phone', metaEmail:'client_email', metaValidity:'meta_validity', toName:'client_name', toDetail:'to_detail', projDesc:'proj_desc', vatRate:'vat_rate' };
+  Object.keys(fieldMap).forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el && q[fieldMap[id]] !== null) el.value = q[fieldMap[id]];
+  });
+  const noteTas = document.querySelectorAll('.note-body textarea');
+  if (noteTas[0]) noteTas[0].value = q.payment_terms || '';
+  if (noteTas[1]) noteTas[1].value = q.delivery_terms || '';
+  if (noteTas[2]) noteTas[2].value = q.notes || '';
+
+  document.getElementById('tbody').innerHTML = '';
+  rowCount = 0;
+  if (q.rows_data) {
+    q.rows_data.forEach(function(r) {
+      if (r.type === 'section') {
+        addSection(r.title);
+      } else {
+        addItem(r.desc, r.qty, r.unit, r.price);
+        const allRows = document.querySelectorAll('#tbody tr[data-t="i"]');
+        const last = allRows[allRows.length-1];
+        if (last) {
+          const sel = last.querySelector('select');
+          if (sel && r.unit) sel.value = r.unit;
+          if (r.merged) {
+            const mb = last.querySelector('.mrg-btn');
+            if (mb) { toggleMerge(mb); const ta = last.querySelector('textarea'); if (ta && r.mergedText) { ta.value = r.mergedText; autoExpand(ta); } }
+          }
+        }
+      }
+    });
+  }
+  // Show who created/edited
+  const metaInfo = document.getElementById('qtMetaInfo');
+  if (metaInfo) {
+    metaInfo.textContent = 'Created by: ' + (q.created_by_name||'—') + (q.last_edited_by_name && q.last_edited_by_name !== q.created_by_name ? '  ·  Last edited by: ' + q.last_edited_by_name : '');
+  }
+  refreshFooter(); recalc(); setTimeout(fitAll, 100); closeModal();
+}
+
+async function deleteQuote(ser) {
+  if (!confirm('Delete quote ' + ser + '?')) return;
+  await supabaseClient.from('quotations').delete().eq('serial', ser);
+  renderList();
+}
+
+async function clearAllQuotes() {
+  if (!confirm('Delete ALL quotations from database?')) return;
+  await supabaseClient.from('quotations').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  renderList();
+}
+
+async function renderList() {
+  const search = (document.getElementById('searchInput').value || '').toLowerCase();
+  const c = document.getElementById('quotesList');
+  c.innerHTML = '<div style="text-align:center;padding:20px;color:#6b7f93;">Loading...</div>';
+
+  let query = supabaseClient.from('quotations').select('serial, client_name, meta_ref, created_by_name, last_edited_by_name, updated_at, grand_total').order('updated_at', { ascending: false });
+  if (search) query = query.or('serial.ilike.%'+search+'%,client_name.ilike.%'+search+'%,meta_ref.ilike.%'+search+'%');
+
+  const { data: all, error } = await query;
+  if (error) { c.innerHTML = '<div style="color:red;padding:20px;">Error loading: '+error.message+'</div>'; return; }
+
+  document.getElementById('quotesCount').textContent = (all ? all.length : 0) + ' quotation(s)';
+  if (!all || !all.length) { c.innerHTML = '<div style="text-align:center;padding:30px;color:#6b7f93;font-size:12px;">No quotations found.</div>'; return; }
+
+  c.innerHTML = all.map(function(q) {
+    const dt = q.updated_at ? new Date(q.updated_at) : null;
+    const ds = dt ? dt.toLocaleDateString('en-GB') + ' ' + dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const grand = q.grand_total ? parseFloat(q.grand_total).toLocaleString('en-US',{maximumFractionDigits:0}) + ' EGP' : '—';
+    const editedBy = q.last_edited_by_name && q.last_edited_by_name !== q.created_by_name ? ' · Edited: <b>'+q.last_edited_by_name+'</b>' : '';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e0e8f0;border-radius:7px;margin-bottom:7px;background:#fafcff;">'
+      +'<div style="flex:1;">'
+        +'<div style="font-size:13px;font-weight:800;color:#1a3a5c;">'+q.serial+'</div>'
+        +'<div style="font-size:11px;color:#6b7f93;margin-top:3px;">'
+          +(q.client_name?'🏢 <b>'+q.client_name+'</b> &nbsp;·&nbsp; ':'')+( q.meta_ref?'📋 '+q.meta_ref+' &nbsp;·&nbsp; ':'' )
+          +'👤 '+( q.created_by_name||'—')+editedBy
+        +'</div>'
+        +'<div style="font-size:10px;color:#aaa;margin-top:2px;">🕐 '+ds+' &nbsp;|&nbsp; 💰 '+grand+'</div>'
+      +'</div>'
+      +'<button onclick="loadQuote(\'' + q.serial + '\')" style="background:#1a3a5c;color:#fff;border:none;border-radius:5px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif;white-space:nowrap;">📂 Open</button>'
+      +'<button onclick="deleteQuote(\'' + q.serial + '\')" style="background:#fef0f0;color:#c0392b;border:1px solid #f5c4c4;border-radius:5px;padding:6px 10px;font-size:13px;cursor:pointer;">🗑</button>'
+    +'</div>';
+  }).join('');
+}
+
+async function openQuotesList() {
+  await renderList();
+  document.getElementById('quotesModal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('quotesModal').style.display = 'none'; }
+document.getElementById('quotesModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+
+// ── INIT ──────────────────────────────────
+checkSession();
+</script>
+<!-- ══ CONFIG MODAL ══════════════════════════ -->
+<div id="configModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99998;align-items:center;justify-content:center;">
+  <div class="config-card">
+    <div class="config-head">
+      <span style="font-weight:800;">⚙ Supabase Configuration</span>
+      <button onclick="document.getElementById('configModal').style.display='none'" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <div class="config-body">
+      <p style="font-size:11px;color:#6b7f93;margin-bottom:16px;">Enter your Supabase project credentials. Get them from <strong>Settings → API</strong> in your Supabase dashboard.</p>
+      <div class="config-field"><label>Project URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co"></div>
+      <div class="config-field"><label>Anon Key</label><input id="cfgKey" placeholder="eyJhbGciOiJIUzI1NiIs..."></div>
+      <button class="config-save" onclick="saveConfig()">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
